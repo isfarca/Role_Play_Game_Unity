@@ -3,11 +3,18 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour 
 {
+    // Animator.
+    [SerializeField] private Animator idle;
+    [SerializeField] private Animator walk;
+    [SerializeField] private Animator run;
+    [SerializeField] private Animator crouch;
+
     // Components.
     private Rigidbody physics;
+    private Animator animator;
     
     // Attributes.
-    [SerializeField] private float speed;
+    [SerializeField] private int speed;
     [SerializeField] private float stamina;
     private bool isBreathless;
 
@@ -17,6 +24,7 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         physics = GetComponent<Rigidbody>();
+        animator = GetComponent<Animator>();
     }
 
     private void Update()
@@ -27,6 +35,8 @@ public class PlayerController : MonoBehaviour
         // Player moved?
         if (Math.Abs(Input.GetAxis("Horizontal")) <= 0.0f && Math.Abs(Input.GetAxis("Vertical")) <= 0.0f) // No.
         {
+            animator = idle;
+            
             // Have stamina the maximum value?
             if (stamina < 10.0f) // No.
             {
@@ -73,12 +83,11 @@ public class PlayerController : MonoBehaviour
         // Is space clicked.
         if (Input.GetKey(KeyCode.Space)) // Yes. [CROUCH]
         {
+            // Set crouch animation.
+            animator = crouch;
+            
             // Crouch.
             var playerTransform = transform;
-            
-            // Set default rotation and freeze rotation.
-            playerTransform.rotation = Quaternion.identity;
-            physics.constraints = RigidbodyConstraints.FreezeRotation;
 
             // Add crouch speed and crouch player.
             var crouchSpeed = speed / 100;
@@ -86,9 +95,17 @@ public class PlayerController : MonoBehaviour
         }
         else // No. [WALK | RUN]
         {
-            // Disable physics freezes.
-            physics.constraints = RigidbodyConstraints.None;
-            
+            // Set animation by speed.
+            switch (speed)
+            {
+                case 10: // Walk animation.
+                    animator = walk;
+                    break;
+                case 20: // Run animation.
+                    animator = run;
+                    break;
+            }
+
             // Move.
             physics.AddForce(movement * speed);
         }
